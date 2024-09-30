@@ -1,15 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const MatchSchedule = ({ schedule }) => {
     const [currentPage, setCurrentPage] = useState(1);
-    const [filter, setFilter] = useState('');
+    const [filterTeamName, setFilterTeamName] = useState('');
+    const [filterByDate, setFilterByDate] = useState('');
+    const [loading, setLoading] = useState(true);
     const matchesPerPage = 10;
 
+    useEffect(() => {
+        // Simulate a data fetch
+        setTimeout(() => {
+            setLoading(false); // Once data is fetched
+        }, 2000);
+    }, []);
 
-    const filteredSchedule = schedule.filter(match =>
-        match.homeTeam.name.toLowerCase().includes(filter.toLowerCase()) ||
-        match.awayTeam.name.toLowerCase().includes(filter.toLowerCase())
-    );
+    if (loading) {
+        return <div className="flex justify-center items-center h-64">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
+        </div>
+    }
+
+    const today = new Date().toLocaleDateString('en-CA'); // Ensure consistent date format
+
+    // Filter the schedule by team name and date (if date is selected)
+    const filteredSchedule = schedule.filter(match => {
+        const matchDate = new Date(match.utcDate).toLocaleDateString('en-CA');
+
+        const matchesTeamFilter =
+            match.homeTeam.name.toLowerCase().includes(filterTeamName.toLowerCase()) ||
+            match.awayTeam.name.toLowerCase().includes(filterTeamName.toLowerCase());
+
+        const matchesDateFilter =
+            !filterByDate || matchDate === filterByDate; // Compare match date to filter date
+
+        return matchesTeamFilter && matchesDateFilter;
+    });
+
+
 
     const indexOfLastMatch = currentPage * matchesPerPage;
     const indexOfFirstMatch = indexOfLastMatch - matchesPerPage;
@@ -17,43 +44,69 @@ const MatchSchedule = ({ schedule }) => {
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    console.log('Schedule Prop:', schedule); // Log the schedule prop
-    if (!schedule.length) {
-        return <p>No matches scheduled.</p>; // Handle the case when schedule is empty
+    // If no matches are found, display this block with an option to reset filters
+    if (!filteredSchedule.length) {
+        return (
+            <div className="text-center">
+                <p className="text-gray-700 text-lg mb-4">No matches found for the current filters.</p>
+                <button
+                    onClick={() => {
+                        setFilterTeamName('');
+                        setFilterByDate('');
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 transition duration-150"
+                >
+                    Return to Full Schedule
+                </button>
+            </div>
+        );
     }
+
+
+
+
 
     return (
         <div>
-            {/* Filter/Search Bar - Outside the scrollable table */}
+            {/* Filter/Search Bar */}
             <div className="flex items-center mb-4">
                 <div className="relative">
                     <input
                         type="text"
-                        placeholder="Search by team name"
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
+                        placeholder="Search by Team Name"
+                        value={filterTeamName}
+                        onChange={(e) => setFilterTeamName(e.target.value)}
                         className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition ease-in-out duration-150 w-64"
                     />
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            fillRule="evenodd"
-                            d="M12.293 12.293a1 1 0 011.414 0l4.3 4.3a1 1 0 01-1.414 1.414l-4.3-4.3a1 1 0 010-1.414zM8.5 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9z"
-                            clipRule="evenodd"
-                        />
-                    </svg>
                 </div>
+                <div className="relative ml-4">
+                    <input
+                        type="date"
+                        value={filterByDate}
+                        onChange={(e) => setFilterByDate(e.target.value)}
+                        className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition ease-in-out duration-150"
+                    />
+                </div>
+
                 <button
-                    onClick={() => setFilter('')}
+                    onClick={() => {
+                        setFilterTeamName('');
+                        setFilterByDate('');
+                    }}
                     className="ml-4 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow-sm hover:bg-gray-300 transition duration-150"
                 >
                     Clear
                 </button>
             </div>
+
+            {filterByDate && (
+                <div className="mb-4 text-lg font-semibold text-gray-700">
+                    {filteredSchedule.length === 1 ?
+                        `Match for ${filterByDate}` :
+                        `Matches for ${filterByDate}`
+                    }
+                </div>
+            )}
 
             {/* Scrollable Table */}
             <div className="overflow-x-auto">
@@ -67,30 +120,34 @@ const MatchSchedule = ({ schedule }) => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {currentMatches.map((match) => (
-                            <tr
-                                key={match.id}
-                                className="hover:bg-gray-100 transition ease-in-out duration-150"
-                            >
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                    {new Date(match.utcDate).toLocaleString()}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                                    {match.homeTeam.name}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                                    {match.awayTeam.name}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                    {new Date(match.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </td>
-                            </tr>
-                        ))}
+                        {currentMatches.map((match) => {
+                            const matchDate = new Date(match.utcDate);
+                            const isToday = matchDate.toLocaleDateString('en-CA') === today;
+
+                            return (
+                                <tr
+                                    key={match.id}
+                                    className={`hover:bg-gray-100 transition ease-in-out duration-150 ${isToday ? 'bg-yellow-100' : ''}`}
+                                >
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {matchDate.toLocaleDateString('en-CA')}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                        {match.homeTeam.name}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                        {match.awayTeam.name}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
 
-            {/* Pagination */}
             <div className="flex justify-center mt-4">
                 {[...Array(Math.ceil(filteredSchedule.length / matchesPerPage)).keys()].map(number => (
                     <button
@@ -103,7 +160,6 @@ const MatchSchedule = ({ schedule }) => {
                 ))}
             </div>
         </div>
-
     );
 };
 
