@@ -61,7 +61,8 @@ const Home = () => {
             <Players players={players} />
 
             <h2 className="text-2xl font-bold mt-6">Upcoming Matches</h2>
-            <MatchSchedule schedule={schedule} />
+            {/* Pass the same match data to MatchSchedule */}
+            <MatchSchedule schedule={results} /> {/* Pass the results to MatchSchedule */}
         </div>
     );
 };

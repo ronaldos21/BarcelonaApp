@@ -27,12 +27,19 @@ const App = () => {
         const matches = response.data.matches || [];
         console.log('Fetched Matches:', matches); // Log fetched matches
 
-        // Filter for scheduled matches
-        const scheduledMatches = matches.filter(match => match.status === 'SCHEDULED');
-        console.log('Scheduled Matches:', scheduledMatches); // Log scheduled matches
 
-        setResults(matches);
-        setSchedule(scheduledMatches); // Set the schedule state
+        // Filter for scheduled matches
+        //const scheduledMatches = matches.filter(match => match.status === 'SCHEDULED');
+        //console.log('Scheduled Matches:', scheduledMatches); // Log scheduled matches
+        //setResults(matches);
+        //setSchedule(scheduledMatches); // Set the schedule state
+
+        // Pass all matches to both results and schedule
+        //setResults(matches);
+        setSchedule(matches); // Set schedule to all matches instead of just scheduled ones
+
+
+
       } catch (error) {
         console.error('Error fetching data:', error);
       }

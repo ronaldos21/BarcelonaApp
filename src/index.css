@@ -16,3 +16,49 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.hover-effect:hover {
+  background-color: #f0f4f8;
+  transform: scale(1.01);
+  transition: transform 0.2s ease-in-out;
+}
+
+@media (max-width: 640px) {
+
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  tr {
+    margin-bottom: 15px;
+  }
+
+  th {
+    display: none;
+  }
+
+  td {
+    position: relative;
+    padding-left: 50%;
+  }
+
+  td:before {
+    position: absolute;
+    left: 10px;
+    content: attr(data-label);
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background-color: rgb(43, 196, 53);
+    z-index: 1;
+  }
+}
